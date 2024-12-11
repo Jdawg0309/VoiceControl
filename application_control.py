@@ -1,24 +1,14 @@
-import subprocess
 import os
-import webbrowser
-import datetime
-import requests
-import random
 import openai
 from dotenv import load_dotenv
-from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
-from comtypes import CLSCTX_ALL
-from ctypes import cast, POINTER
-import keyboard  # For media control
-import psutil
-import signal
+from applicationManagement import *
+from mediaControl import *
+from systemControl import *
+from utility import *
 
 # Load environment variables
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
-
-# Dictionary to store application PIDs
-app_pids = {}
 
 # Function to process voice commands
 def process_command():
@@ -92,133 +82,6 @@ def process_command():
         except sr.RequestError as e:
             print(f"Could not request results; {e}")
 
-# System Control Functions
-def shutdown_system():
-    print("Shutting down the system...")
-    os.system("shutdown /s /f /t 0")
-
-def reboot_system():
-    print("Rebooting the system...")
-    os.system("shutdown /r /f /t 0")
-
-def sleep_system():
-    print("Putting the system to sleep...")
-    os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
-
-# Volume Control Functions
-def get_volume_control():
-    devices = AudioUtilities.GetSpeakers()
-    interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
-    return cast(interface, POINTER(IAudioEndpointVolume))
-
-def volume_up():
-    volume = get_volume_control()
-    current_volume = volume.GetMasterVolumeLevelScalar()
-    volume.SetMasterVolumeLevelScalar(min(1.0, current_volume + 0.1), None)
-    print("Volume increased.")
-
-def volume_down():
-    volume = get_volume_control()
-    current_volume = volume.GetMasterVolumeLevelScalar()
-    volume.SetMasterVolumeLevelScalar(max(0.0, current_volume - 0.1), None)
-    print("Volume decreased.")
-
-def mute_system():
-    volume = get_volume_control()
-    volume.SetMute(1, None)
-    print("System muted.")
-
-# Media Control Functions
-def play_media():
-    keyboard.press_and_release('play/pause')
-    print("Playing media...")
-
-def pause_media():
-    keyboard.press_and_release('play/pause')
-    print("Pausing media...")
-
-def fast_forward_media():
-    keyboard.press_and_release('next track')
-    print("Fast forwarding media...")
-
-def rewind_media():
-    keyboard.press_and_release('previous track')
-    print("Rewinding media...")
-
-# Application Management
-def open_application(command):
-    try:
-        app_name = command.split("open ")[1]
-        app_paths = {
-            "browser": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-            "spotify": "C:\\Users\\User\\AppData\\Roaming\\Spotify\\Spotify.exe",
-            "notepad": "C:\\Windows\\system32\\notepad.exe",
-            "calculator": "C:\\Windows\\System32\\calc.exe"
-        }
-        app_path = app_paths.get(app_name.lower())
-        if app_path and os.path.exists(app_path):
-            process = subprocess.Popen(app_path)
-            app_pids[app_name.lower()] = process.pid
-            print(f"Opened {app_name} with PID {process.pid}")
-        else:
-            print(f"Error: Application {app_name} not found or invalid path.")
-    except IndexError:
-        print("Please specify the application to open (e.g., 'open spotify').")
-    except Exception as e:
-        print(f"An error occurred while trying to open the application: {e}")
-
-def close_application(command):
-    try:
-        app_name = command.split("close ")[1].lower()
-        pid = app_pids.get(app_name)
-        if pid and psutil.pid_exists(pid):
-            os.kill(pid, signal.SIGTERM)
-            print(f"Closed {app_name} with PID {pid}")
-            del app_pids[app_name]
-        else:
-            print(f"No active process found for {app_name}.")
-    except IndexError:
-        print("Please specify the application to close (e.g., 'close browser').")
-    except Exception as e:
-        print(f"An error occurred while trying to close the application: {e}")
-
-# Utility Functions
-def search_google(command):
-    query = command.split("search google for ")[-1]
-    webbrowser.open(f"https://www.google.com/search?q={query}")
-    print(f"Searching Google for: {query}")
-
-def search_youtube(command):
-    query = command.split("search youtube for ")[-1]
-    webbrowser.open(f"https://www.youtube.com/results?search_query={query}")
-    print(f"Searching YouTube for: {query}")
-
-def tell_joke():
-    jokes = [
-        "Why don't scientists trust atoms? Because they make up everything!",
-        "Why did the scarecrow win an award? Because he was outstanding in his field!",
-        "Why don't skeletons fight each other? They don't have the guts."
-    ]
-    print(random.choice(jokes))
-
-def tell_time():
-    now = datetime.datetime.now()
-    print(f"The current time is {now.strftime('%H:%M')}.")
-
-def fetch_weather():
-    api_key = "your_openweather_api_key"
-    city = "New York"
-    try:
-        response = requests.get(f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric")
-        data = response.json()
-        if data["cod"] == 200:
-            weather = data["weather"][0]["description"]
-            temp = data["main"]["temp"]
-            print(f"Weather in {city}: {weather}, {temp} °C.")
-        else:
-            print("Failed to fetch weather updates.")
-    except Exception as e:
-        print(f"Error fetching weather: {e}")
 
 
 def ask_chatgpt(command):
