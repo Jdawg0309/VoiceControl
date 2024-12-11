@@ -1,0 +1,21 @@
+2024-11-21 05:13:07,159 - Imported existing <module 'comtypes.gen' from 'C:\\Users\\Junaet Mahbub\\AppData\\Roaming\\Python\\Python312\\site-packages\\comtypes\\gen\\__init__.py'>
+2024-11-21 05:13:07,159 - Using writeable comtypes cache directory: 'C:\Users\Junaet Mahbub\AppData\Roaming\Python\Python312\site-packages\comtypes\gen'
+2024-11-21 05:13:14,365 - Assistant: Wake word detected! Activating...
+2024-11-21 05:13:24,326 - User: open spotify
+2024-11-21 05:13:24,333 - Assistant: Opening spotify...
+2024-11-21 05:13:29,709 - User: close spotify
+2024-11-21 05:13:29,712 - Assistant: Sorry, I didn't understand your command.
+2024-11-21 05:13:37,074 - User: open calculator
+2024-11-21 05:13:37,081 - Assistant: Opening calculator...
+2024-11-21 05:13:44,018 - User: close
+2024-11-21 05:13:44,021 - Assistant: Sorry, I didn't understand your command.
+2024-11-21 05:14:00,556 - User: close
+2024-11-21 05:14:00,559 - Assistant: Sorry, I didn't understand your command.
+2024-11-21 05:14:06,839 - User: close
+2024-11-21 05:14:06,842 - Assistant: Sorry, I didn't understand your command.
+2024-11-21 05:14:13,928 - User: close calculator
+2024-11-21 05:14:13,931 - Assistant: Sorry, I didn't understand your command.
+2024-11-21 05:14:37,804 - User: search google for
+2024-11-21 05:14:37,808 - Assistant: Please provide a valid search query.
+2024-11-21 05:14:52,996 - User: search google for cats
+2024-11-21 05:14:53,129 - Assistant: Searching Google for cats
