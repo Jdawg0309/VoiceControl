@@ -2,6 +2,8 @@ import webbrowser
 import datetime
 import requests
 import random
+from dotenv import load_dotenv
+import os
 
 def search_google(command):
     query = command.split("search google for ")[-1]
@@ -26,10 +28,11 @@ def tell_time():
     print(f"The current time is {now.strftime('%H:%M')}.")
 
 def fetch_weather():
-    api_key = "your_openweather_api_key"
+    load_dotenv()
+    weather_api_key = os.getenv("weather_api_key")
     city = "New York"
     try:
-        response = requests.get(f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric")
+        response = requests.get(f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={weather_api_key}&units=metric")
         data = response.json()
         if data["cod"] == 200:
             weather = data["weather"][0]["description"]
@@ -39,28 +42,3 @@ def fetch_weather():
             print("Failed to fetch weather updates.")
     except Exception as e:
         print(f"Error fetching weather: {e}")
-
-
-def ask_chatgpt(command):
-    """
-    Processes the 'ask ChatGPT' command and fetches a response from OpenAI's API.
-    """
-    if "ask chatgpt" in command or "ask ai" in command:
-        try:
-            # Extract the query from the command
-            query = command.split("ask chatgpt")[-1].strip()
-            print(f"Querying ChatGPT: {query}")
-
-            # Call the OpenAI ChatGPT API
-            response = openai.chat.completions.create(
-                model="gpt-3.5-turbo",  # Model name
-                messages=[{"role": "user", "content": query}],
-            )
-
-            # Extract and print the response
-            chatgpt_response = response.choices[0].message.content
-            print(f"ChatGPT Response: {chatgpt_response}")
-        except Exception as e:
-            print(f"Error communicating with ChatGPT: {e}")
-    else:
-        print("Please provide a valid ChatGPT query command.")

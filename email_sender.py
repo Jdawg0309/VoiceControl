@@ -18,15 +18,9 @@ def send_email():
 
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
-        server.login(sender_email, "your_password")
+        server.login(sender_email, "Zubaed@2008")
         server.sendmail(sender_email, receiver_email, msg.as_string())
         server.quit()
         print("Email sent successfully!")
     except Exception as e:
         print(f"Error sending email: {e}")
-
-# main.py
-from application_control import process_command
-
-if __name__ == "__main__":
-    process_command()  # Start listening for the wake word

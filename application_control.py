@@ -1,5 +1,6 @@
 import os
 import openai
+from email_sender import *
 from dotenv import load_dotenv
 from applicationManagement import *
 from mediaControl import *
@@ -8,27 +9,15 @@ from utility import *
 
 # Load environment variables
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Function to process voice commands
 def process_command():
     import speech_recognition as sr
     recognizer = sr.Recognizer()
     mic = sr.Microphone()
-
-    print("System is on and waiting for activation. Say 'Sally' to activate.")
-
     while True:
         try:
-            with mic as source:
-                print("Listening for the wake word 'Sally'...")
-                audio = recognizer.listen(source)
-
-            wake_word = recognizer.recognize_google(audio).lower()
-            print(f"Wake word received: {wake_word}")
-
-            if "sally" in wake_word:
-                print("Sally is active! Listening for your command...")
+            if keyboard.is_pressed('m'):
                 with mic as source:
                     print("Listening for a command...")
                     audio = recognizer.listen(source)
@@ -54,6 +43,8 @@ def process_command():
                         pause_media()
                     if "fast forward" in command:
                         fast_forward_media()
+                    if "email" in command:
+                        send_email()
                     if "rewind" in command:
                         rewind_media()
                     if "open" in command:
@@ -75,8 +66,6 @@ def process_command():
                     if "exit" in command:
                         print("Exiting program...")
                         break
-            else:
-                print("Wake word 'Sally' not detected. Listening again...")
         except sr.UnknownValueError:
             print("Sorry, I didn't understand that.")
         except sr.RequestError as e:
