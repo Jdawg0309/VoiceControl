@@ -1,4 +1,3 @@
-# application_control.py
 import subprocess
 import os
 import webbrowser
@@ -8,15 +7,21 @@ import random
 import openai
 from dotenv import load_dotenv
 from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
+from comtypes import CLSCTX_ALL
 from ctypes import cast, POINTER
 import keyboard  # For media control
+import psutil
 import signal
 
+# Load environment variables
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+# Dictionary to store application PIDs
+app_pids = {}
+
+# Function to process voice commands
 def process_command():
-    """Continuously listen for commands and execute system tasks."""
     import speech_recognition as sr
     recognizer = sr.Recognizer()
     mic = sr.Microphone()
@@ -75,6 +80,8 @@ def process_command():
                         tell_time()
                     if "weather update" in command or "weather" in command:
                         fetch_weather()
+                    if "ask chatgpt" in command or "ask ai" in command:
+                        ask_chatgpt(command)
                     if "exit" in command:
                         print("Exiting program...")
                         break
@@ -101,17 +108,19 @@ def sleep_system():
 # Volume Control Functions
 def get_volume_control():
     devices = AudioUtilities.GetSpeakers()
-    interface = devices.Activate(IAudioEndpointVolume._iid_, cast, None)
+    interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
     return cast(interface, POINTER(IAudioEndpointVolume))
 
 def volume_up():
     volume = get_volume_control()
-    volume.SetMasterVolumeLevelScalar(min(1.0, volume.GetMasterVolumeLevelScalar() + 0.1), None)
+    current_volume = volume.GetMasterVolumeLevelScalar()
+    volume.SetMasterVolumeLevelScalar(min(1.0, current_volume + 0.1), None)
     print("Volume increased.")
 
 def volume_down():
     volume = get_volume_control()
-    volume.SetMasterVolumeLevelScalar(max(0.0, volume.GetMasterVolumeLevelScalar() - 0.1), None)
+    current_volume = volume.GetMasterVolumeLevelScalar()
+    volume.SetMasterVolumeLevelScalar(max(0.0, current_volume - 0.1), None)
     print("Volume decreased.")
 
 def mute_system():
@@ -136,11 +145,8 @@ def rewind_media():
     keyboard.press_and_release('previous track')
     print("Rewinding media...")
 
-# Other Helper Functions
-app_pids = {}
-
+# Application Management
 def open_application(command):
-    """Open an application and store its PID."""
     try:
         app_name = command.split("open ")[1]
         app_paths = {
@@ -150,80 +156,42 @@ def open_application(command):
             "calculator": "C:\\Windows\\System32\\calc.exe"
         }
         app_path = app_paths.get(app_name.lower())
-        if app_path:
-            if os.path.exists(app_path):
-                # Open the application and store the PID
-                process = subprocess.Popen(app_path)
-                app_pids[app_name.lower()] = process.pid
-                print(f"Opened {app_name} with PID {process.pid}")
-            else:
-                print(f"Error: The path for {app_name} does not exist: {app_path}")
+        if app_path and os.path.exists(app_path):
+            process = subprocess.Popen(app_path)
+            app_pids[app_name.lower()] = process.pid
+            print(f"Opened {app_name} with PID {process.pid}")
         else:
-            print(f"Error: Application {app_name} not found in app_paths.")
+            print(f"Error: Application {app_name} not found or invalid path.")
     except IndexError:
         print("Please specify the application to open (e.g., 'open spotify').")
     except Exception as e:
         print(f"An error occurred while trying to open the application: {e}")
 
-
-import psutil
-import subprocess
-import signal
-
 def close_application(command):
-    """Close an application using its PID or process name."""
     try:
         app_name = command.split("close ")[1].lower()
         pid = app_pids.get(app_name)
-        
         if pid and psutil.pid_exists(pid):
-            # Use taskkill to terminate the process by PID
-            subprocess.run(["taskkill", "/PID", str(pid), "/F"], check=True, capture_output=True, text=True)
+            os.kill(pid, signal.SIGTERM)
             print(f"Closed {app_name} with PID {pid}")
-            del app_pids[app_name]  # Remove the PID from the dictionary
+            del app_pids[app_name]
         else:
-            print(f"PID for {app_name} not found. Attempting to locate by process name...")
-            # Search for the process by name
-            process_found = False
-            for process in psutil.process_iter(['pid', 'name']):
-                if app_name in process.info['name'].lower():
-                    print(f"Found {app_name} with PID {process.info['pid']}. Terminating...")
-                    os.kill(process.info['pid'], signal.SIGTERM)
-                    process_found = True
-            if process_found:
-                print(f"Successfully closed all running instances of {app_name}.")
-            else:
-                print(f"Error: No running process found for {app_name}.")
-    except subprocess.CalledProcessError as e:
-        print(f"An error occurred while trying to close the application: {e.stderr.strip()}")
+            print(f"No active process found for {app_name}.")
     except IndexError:
         print("Please specify the application to close (e.g., 'close browser').")
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        print(f"An error occurred while trying to close the application: {e}")
 
-
-
-def shutdown_system():
-    print("Shutting down the computer...")
-    os.system("shutdown /s /f /t 0")
-
-def restart_system():
-    print("Restarting the computer...")
-    os.system("shutdown /r /f /t 0")
-
+# Utility Functions
 def search_google(command):
-    if "search google for" in command:
-        search_query = command.split("search google for ")[1]
-        webbrowser.open(f"https://www.google.com/search?q={search_query}")
-    else:
-        print("Please provide a valid Google search command.")
+    query = command.split("search google for ")[-1]
+    webbrowser.open(f"https://www.google.com/search?q={query}")
+    print(f"Searching Google for: {query}")
 
 def search_youtube(command):
-    if "search youtube for" in command:
-        search_query = command.split("search youtube for ")[1]
-        webbrowser.open(f"https://www.youtube.com/results?search_query={search_query}")
-    else:
-        print("Please provide a valid YouTube search command.")
+    query = command.split("search youtube for ")[-1]
+    webbrowser.open(f"https://www.youtube.com/results?search_query={query}")
+    print(f"Searching YouTube for: {query}")
 
 def tell_joke():
     jokes = [
@@ -238,8 +206,8 @@ def tell_time():
     print(f"The current time is {now.strftime('%H:%M')}.")
 
 def fetch_weather():
-    api_key = "your_openweather_api_key"  # Replace with your API key
-    city = "New York"  # Replace with your city
+    api_key = "your_openweather_api_key"
+    city = "New York"
     try:
         response = requests.get(f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric")
         data = response.json()
@@ -251,6 +219,7 @@ def fetch_weather():
             print("Failed to fetch weather updates.")
     except Exception as e:
         print(f"Error fetching weather: {e}")
+
 
 def ask_chatgpt(command):
     """
