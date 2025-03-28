@@ -1,0 +1,22 @@
+# Core Libraries
+SpeechRecognition==3.10.0          # For voice command processing
+pyttsx3==2.90                      # Text-to-speech for voice feedback
+python-dotenv==1.0.0               # Environment variable management
+requests==2.31.0                   # HTTP requests (e.g., weather API)
+openai==0.28.0                     # ChatGPT integration (if API key is provided)
+
+# Hardware/OS Control
+pycaw==2023.8.30                   # Windows audio control (replace for Pi)
+psutil==5.9.5                      # Application process management
+keyboard==0.13.5                   # Media key simulation (Linux-compatible)
+RPi.GPIO==0.7.1                    # GPIO control (for speaker/sensor wiring)
+gpiozero==1.6.2                    # Simplified GPIO interface (alternative)
+
+# Audio/Input
+pyaudio==0.2.13                    # Microphone input (may need manual install)
+espeak==1.48.15                    # Lightweight TTS engine (Linux-only)
+flite==2.2.0                       # Alternative TTS (smaller footprint)
+
+# Optional (for advanced users)
+numpy==1.24.3                      # Required by some audio libraries
+pydub==0.25.1                      # Audio processing (if needed)
