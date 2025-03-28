@@ -1,17 +1,18 @@
-import keyboard  # For media control
-# Media Control Functions
+# mediaControl.py (Linux Version)
+import subprocess
+
 def play_media():
-    keyboard.press_and_release('play/pause')
-    print("Playing media...")
+    subprocess.run(["playerctl", "play-pause"])
+    print("Toggled media play/pause.")
 
 def pause_media():
-    keyboard.press_and_release('play/pause')
-    print("Pausing media...")
+    subprocess.run(["playerctl", "pause"])
+    print("Media paused.")
 
 def fast_forward_media():
-    keyboard.press_and_release('next track')
-    print("Fast forwarding media...")
+    subprocess.run(["playerctl", "next"])
+    print("Next track.")
 
 def rewind_media():
-    keyboard.press_and_release('previous track')
-    print("Rewinding media...")
+    subprocess.run(["playerctl", "previous"])
+    print("Previous track.")

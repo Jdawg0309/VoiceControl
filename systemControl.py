@@ -1,40 +1,37 @@
-from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
-from comtypes import CLSCTX_ALL
-from ctypes import cast, POINTER
+# systemControl.py (Linux Version)
+import alsaaudio
 import subprocess
 import os
 
 def shutdown_system():
     print("Shutting down the system...")
-    os.system("shutdown /s /f /t 0")
+    subprocess.run(["sudo", "shutdown", "-h", "now"])
 
 def reboot_system():
     print("Rebooting the system...")
-    os.system("shutdown /r /f /t 0")
+    subprocess.run(["sudo", "reboot"])
 
 def sleep_system():
     print("Putting the system to sleep...")
-    os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
+    subprocess.run(["sudo", "systemctl", "suspend"])
 
-# Volume Control Functions
-def get_volume_control():
-    devices = AudioUtilities.GetSpeakers()
-    interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
-    return cast(interface, POINTER(IAudioEndpointVolume))
+# ALSA Volume Control
+def get_mixer():
+    return alsaaudio.Mixer()
 
 def volume_up():
-    volume = get_volume_control()
-    current_volume = volume.GetMasterVolumeLevelScalar()
-    volume.SetMasterVolumeLevelScalar(min(1.0, current_volume + 0.1), None)
+    mixer = get_mixer()
+    current = mixer.getvolume()[0]
+    mixer.setvolume(min(100, current + 10))
     print("Volume increased.")
 
 def volume_down():
-    volume = get_volume_control()
-    current_volume = volume.GetMasterVolumeLevelScalar()
-    volume.SetMasterVolumeLevelScalar(max(0.0, current_volume - 0.1), None)
+    mixer = get_mixer()
+    current = mixer.getvolume()[0]
+    mixer.setvolume(max(0, current - 10))
     print("Volume decreased.")
 
 def mute_system():
-    volume = get_volume_control()
-    volume.SetMute(1, None)
+    mixer = get_mixer()
+    mixer.setmute(not mixer.getmute()[0])  # Toggle mute
     print("System muted.")
